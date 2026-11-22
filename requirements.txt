@@ -1,0 +1,5 @@
+PyYAML>=6.0
+# Live mode only (real model plays the compromised agent):
+litellm>=1.40
+# Tests:
+pytest>=8.0

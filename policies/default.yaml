@@ -1,0 +1,59 @@
+# Default tool-permission policy for agent-tool-firewall.
+#
+# Policy is enforced deterministically BEFORE any tool runs. An agent can only
+# do what is listed here — everything else is denied by default.
+version: 1
+
+network:
+  # Hosts any agent may reach through network tools. Everything else is denied.
+  allowlist:
+    - api.internal.example.com
+
+sandbox:
+  root: ./sandbox-data        # tools only ever see files under this directory
+  timeout_seconds: 5          # hard per-call timeout
+  max_output_chars: 4000      # tool output returned to the agent is capped
+
+tools:
+  docs:
+    risk: low
+  file:
+    risk: medium
+  payments:
+    risk: high
+  http:
+    risk: high
+  shell:
+    risk: critical
+  admin:
+    risk: critical
+    requires_approval: true   # any admin operation needs a human yes
+
+agents:
+  research-agent:
+    description: "Reads internal docs and writes reports. Nothing else."
+    capabilities:
+      - tool: docs
+        operations: [search]
+      - tool: file
+        operations: [read]
+        resources: ["docs/*", "reports/*"]
+      - tool: file
+        operations: [write]
+        resources: ["reports/*"]
+
+  support-agent:
+    description: "Answers customer questions from docs; may issue small refunds."
+    capabilities:
+      - tool: docs
+        operations: [search]
+      - tool: file
+        operations: [read]
+        resources: ["docs/*"]
+      - tool: payments
+        operations: [charge]
+        constraints:
+          max_amount: 50              # spending cap, in dollars
+          rate_limit:
+            max_calls: 5
+            window_seconds: 60
