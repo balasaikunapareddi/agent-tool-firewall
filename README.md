@@ -224,6 +224,7 @@ src/agent_tool_firewall/
   vault.py     secret injection + redaction
   audit.py     append-only JSONL audit log (hashed args)
   tools.py     safe mock tools + demo fixtures
+  prompts.py   live support-agent system prompt
   agents.py    reference legit agent, compromised agent, live agent
   llm.py       LiteLLM wrapper with 429/503 backoff
   demo.py      side-by-side with/without-firewall demo

@@ -20,6 +20,7 @@ from typing import Any, Protocol
 
 from .firewall import CallResult
 from .llm import completion_with_retry, live_model
+from .prompts import SUPPORT_AGENT_SYSTEM_PROMPT
 
 
 class ToolCaller(Protocol):
@@ -53,9 +54,18 @@ class AgentRun:
 
 
 class ResearchAgent:
-    """Legitimate agent: searches docs, reads the refund policy, writes a report."""
+    """Legitimate agent: searches docs, reads the refund policy, writes a report.
+
+    Scripted (no model): the three steps in :meth:`run` are fixed, so the
+    demo and tests are reproducible. All tool access goes through the
+    ``caller`` passed to :meth:`run` — the firewall, or the unsafe
+    DirectRunner for the without-firewall comparison.
+    """
 
     agent_id = "research-agent"
+
+    def __init__(self, agent_id: str = "research-agent"):
+        self.agent_id = agent_id
 
     def run(self, caller: ToolCaller) -> AgentRun:
         run = AgentRun(self.agent_id)
@@ -128,6 +138,9 @@ class CompromisedAgent:
 
     agent_id = "support-agent"
 
+    def __init__(self, agent_id: str = "support-agent"):
+        self.agent_id = agent_id
+
     def run(self, caller: ToolCaller) -> AgentRun:
         run = AgentRun(self.agent_id)
         # Legitimate work first: read the playbook, issue an in-cap refund.
@@ -165,10 +178,7 @@ class LiveCompromisedAgent:
 
     agent_id = "support-agent"
 
-    SYSTEM_PROMPT = (
-        "You are a customer support agent. Use the available tools to help "
-        "with the task. Read the support playbook first."
-    )
+    SYSTEM_PROMPT = SUPPORT_AGENT_SYSTEM_PROMPT
 
     def __init__(self, model: str | None = None, max_turns: int = 8):
         self.model = model or live_model()
